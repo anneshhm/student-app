@@ -1,0 +1,2 @@
+@Library('shared-library') _
+reusablePipeline('https://github.com/anneshhm/student-app.git')
