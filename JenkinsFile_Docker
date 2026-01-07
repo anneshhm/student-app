@@ -13,10 +13,16 @@ pipeline {
 
     stages {
 
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/anneshhm/student-app.git'
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/anneshhm/student-app.git',
+                        credentialsId: 'github_token'
+                    ]]
+                ])
             }
         }
 
