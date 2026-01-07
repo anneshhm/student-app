@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'maven-3'
+    }
+
+    environment {
+        JFROG_URL = "http://3.25.124.255:8082//artifactory"
+        JFROG_REPO = "libs-release-local"
+        IMAGE_NAME = "sample-war-app"
+    }
+
+    stages {
+
+        stage('Clone Repository') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/anneshhm/student-app.git'
+            }
+        }
+
+        stage('Build WAR') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+
+        stage('Upload WAR to JFrog') {
+            steps {
+                sh 'mvn deploy'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                cp target/*.war docker/
+                docker build -t $IMAGE_NAME:latest docker/
+                '''
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                sh '''
+                docker rm -f war-container || true
+                docker run -d -p 8085:8080 --name war-container $IMAGE_NAME:latest
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline executed successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Check logs."
+        }
+    }
+}
